@@ -1,20 +1,20 @@
 {
-    "projectA": {
-        "profit": 10.0,
-        "risk": "high",
-        "duration": 3.33,
-        "duration_unit": "months",
-        "budget": 50.0,
-        "team_availability": 10,
-        "equipment_availability": 50
-    },
-    "projectB": {
-        "profit": 15.0,
-        "risk": "low",
-        "duration": 20.0,
-        "duration_unit": "months",
-        "budget": 200.0,
-        "team_availability": 100,
-        "equipment_availability": 25
-    }
+  "projectA": {
+    "profit": 50,
+    "risk": "medium",
+    "duration": 10,
+    "duration_unit": "months",
+    "budget": 120,
+    "team_availability": 70,
+    "equipment_availability": 60
+  },
+  "projectB": {
+    "profit": 50,
+    "risk": "medium",
+    "duration":10,
+    "duration_unit": "months",
+    "budget": 120,
+    "team_availability": 70,
+    "equipment_availability": 60
+  }
 }

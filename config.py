@@ -10,3 +10,4 @@ if not MISTRAL_API_KEY:
     raise ValueError(
         "MISTRAL_API_KEY was not found. Please check your .env file."
     )
+

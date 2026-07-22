@@ -1,4 +1,4 @@
-from mistralai import Mistral
+from mistralai.client import Mistral
 
 from config import (
     MISTRAL_API_KEY,
@@ -10,19 +10,25 @@ client = Mistral(
 )
 
 
-def ask_mistral(prompt):
+def ask_mistral(prompt, system=None, temperature=0):
+
+    messages = []
+
+    if system:
+        messages.append({
+            "role": "system",
+            "content": system
+        })
+
+    messages.append({
+        "role": "user",
+        "content": prompt
+    })
 
     response = client.chat.complete(
-
         model=MODEL_NAME,
-
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-
+        messages=messages,
+        temperature=temperature
     )
 
     return response.choices[0].message.content
