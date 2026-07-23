@@ -1,20 +1,16 @@
 {
-  "projectA": {
-    "profit": 50,
-    "risk": "medium",
-    "duration": 10,
-    "duration_unit": "months",
-    "budget": 120,
-    "team_availability": 70,
-    "equipment_availability": 60
-  },
-  "projectB": {
-    "profit": 50,
-    "risk": "medium",
-    "duration":10,
-    "duration_unit": "months",
-    "budget": 120,
-    "team_availability": 70,
-    "equipment_availability": 60
-  }
+    "projectA": {
+        "delay_without_equipment_days": 2.0,
+        "has_penalty_clause": true,
+        "penalty_amount": 2.0,
+        "rental_alternative_available": false,
+        "rental_cost_per_day": 0
+    },
+    "projectB": {
+        "delay_without_equipment_days": 5.0,
+        "has_penalty_clause": false,
+        "penalty_amount": 0,
+        "rental_alternative_available": true,
+        "rental_cost_per_day": 20.0
+    }
 }

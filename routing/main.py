@@ -4,7 +4,7 @@ Routing Agent - Main Entry Point
 
 Pipeline:
 
-1. Load project data.
+1. Load the equipment allocation request (two competing projects).
 2. Ask the Routing Classifier to choose one review category.
 3. Execute the matching deterministic workflow.
 4. Display the recommendation.
@@ -15,17 +15,17 @@ from utils.load_data import load_projects
 from routing.classifier import classify_scenario
 
 from routing.workflows import (
-    financial_review,
-    risk_review,
-    resource_review,
+    delay_review,
+    penalty_review,
+    alternative_review,
     executive_review,
 )
 
 
 WORKFLOWS = {
-    "FINANCIAL_REVIEW": financial_review,
-    "RISK_REVIEW": risk_review,
-    "RESOURCE_REVIEW": resource_review,
+    "DELAY_REVIEW": delay_review,
+    "PENALTY_REVIEW": penalty_review,
+    "ALTERNATIVE_REVIEW": alternative_review,
     "EXECUTIVE_REVIEW": executive_review,
 }
 
@@ -75,8 +75,8 @@ def run_routing_agent():
     print("         ROUTING AGENT RESULT")
     print("=" * 60)
 
-    print(f"\nSelected Review : {result['category']}")
-    print(f"Recommended     : {result['recommended']}")
+    print(f"\nSelected Review       : {result['category']}")
+    print(f"Equipment Assigned To : {result['recommended']}")
 
     print("\nReasons:")
 
@@ -87,6 +87,9 @@ def run_routing_agent():
 
     for project, score in result["scores"].items():
         print(f" {project}: {score}")
+
+    print(f"\nSuggested Action for {result['other_project']}:")
+    print(f" → {result['other_project_action']}")
 
     print("\n" + "=" * 60)
 

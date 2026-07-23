@@ -1,85 +1,47 @@
 import json
 
-VALID_RISKS = {"low", "medium", "high"}
-
 
 # -------------------- Validation Functions --------------------
+
+def get_days(message):
+    while True:
+        try:
+            value = float(input(message))
+
+            if value >= 0:
+                return value
+
+            print("Value must be 0 or greater.")
+
+        except ValueError:
+            print("Please enter a valid number.")
+
 
 def get_money(message):
     while True:
         try:
             value = float(input(message))
 
-            if value > 0:
+            if value >= 0:
                 return value
 
-            print("Value must be greater than 0.")
+            print("Value must be 0 or greater.")
 
         except ValueError:
             print("Please enter a valid number.")
 
 
-def get_percentage(message):
+def get_yes_no(message):
     while True:
-        try:
-            value = int(input(message))
+        answer = input(f"{message} (y/n): ").strip().lower()
 
-            if 0 <= value <= 100:
-                return value
+        if answer in ("y", "yes"):
+            return True
 
-            print("Enter a percentage between 0 and 100.")
+        if answer in ("n", "no"):
+            return False
 
-        except ValueError:
-            print("Please enter a valid integer.")
-
-
-def get_risk(project_name):
-    while True:
-        risk = input(
-            f"{project_name} Risk (low / medium / high): "
-        ).strip().lower()
-
-        if risk in VALID_RISKS:
-            return risk
-
-        print("Invalid risk. Allowed values: low, medium or high.")
-
-
-def get_duration(project_name):
-    while True:
-
-        duration = input(
-            f"{project_name} Duration (Example: 10d or 6m): "
-        ).strip().lower()
-
-        try:
-
-            if duration.endswith("d"):
-
-                days = float(duration[:-1])
-
-                if days <= 0:
-                    print("Duration must be greater than 0.")
-                    continue
-
-                months = round(days / 30, 2)
-                return months, f"{days} Days"
-
-            elif duration.endswith("m"):
-
-                months = float(duration[:-1])
-
-                if months <= 0:
-                    print("Duration must be greater than 0.")
-                    continue
-
-                return months, f"{months} Months"
-
-            else:
-                print("Enter duration like 10d or 6m.")
-
-        except ValueError:
-            print("Invalid duration format.")
+        print("Please answer y or n.")
 
 
 # -------------------- Project Input --------------------
@@ -90,62 +52,53 @@ def get_project(project_name):
 
     project = {}
 
-    project["profit"] = get_money(
-        f"{project_name} Profit (Million): "
+    project["delay_without_equipment_days"] = get_days(
+        f"{project_name} - Delay if equipment is NOT assigned (days): "
     )
 
-    project["risk"] = get_risk(project_name)
-
-    duration_months, duration_display = get_duration(project_name)
-    project["duration"] = duration_months
-    project["duration_unit"] = "months"
-
-    project["budget"] = get_money(
-        f"{project_name} Budget (Million): "
+    project["has_penalty_clause"] = get_yes_no(
+        f"{project_name} - Does the contract have a delay penalty clause?"
     )
 
-    project["team_availability"] = get_percentage(
-        f"{project_name} Team Availability (%): "
+    if project["has_penalty_clause"]:
+        project["penalty_amount"] = get_money(
+            f"{project_name} - Penalty amount (EGP): "
+        )
+    else:
+        project["penalty_amount"] = 0
+
+    project["rental_alternative_available"] = get_yes_no(
+        f"{project_name} - Is a rental alternative available nearby?"
     )
 
-    project["equipment_availability"] = get_percentage(
-        f"{project_name} Equipment Availability (%): "
-    )
+    if project["rental_alternative_available"]:
+        project["rental_cost_per_day"] = get_money(
+            f"{project_name} - Rental cost per day (EGP): "
+        )
+    else:
+        project["rental_cost_per_day"] = 0
 
-    return project, duration_display
+    return project
 
 
 # -------------------- Collect Data --------------------
 
-projectA, displayA = get_project("Project A")
-projectB, displayB = get_project("Project B")
+projectA = get_project("Project A")
+projectB = get_project("Project B")
 
 
 # -------------------- Summary --------------------
 
-print("\n================ PROJECT SUMMARY ================\n")
+print("\n================ REQUEST SUMMARY ================\n")
 
-print("Project A")
-print(f"Profit                 : {projectA['profit']} M")
-print(f"Risk                   : {projectA['risk'].title()}")
-print(
-    f"Duration               : {displayA} ({projectA['duration']} {projectA['duration_unit']})"
-)
-print(f"Budget                 : {projectA['budget']} M")
-print(f"Team Availability      : {projectA['team_availability']}%")
-print(f"Equipment Availability : {projectA['equipment_availability']}%")
-
-print("\n------------------------------------------------\n")
-
-print("Project B")
-print(f"Profit                 : {projectB['profit']} M")
-print(f"Risk                   : {projectB['risk'].title()}")
-print(
-    f"Duration               : {displayB} ({projectB['duration']} {projectB['duration_unit']})"
-)
-print(f"Budget                 : {projectB['budget']} M")
-print(f"Team Availability      : {projectB['team_availability']}%")
-print(f"Equipment Availability : {projectB['equipment_availability']}%")
+for name, project in (("Project A", projectA), ("Project B", projectB)):
+    print(name)
+    print(f"Delay Without Equipment : {project['delay_without_equipment_days']} days")
+    print(f"Penalty Clause          : {'Yes' if project['has_penalty_clause'] else 'No'}")
+    print(f"Penalty Amount          : {project['penalty_amount']} EGP")
+    print(f"Rental Alternative      : {'Available' if project['rental_alternative_available'] else 'Not Available'}")
+    print(f"Rental Cost / Day       : {project['rental_cost_per_day']} EGP")
+    print()
 
 
 projects = {
@@ -158,4 +111,4 @@ with open("data/projects.json", "w", encoding="utf-8") as file:
     json.dump(projects, file, indent=4, ensure_ascii=False)
 
 
-print("\nProjects saved successfully")
+print("Requests saved successfully")
