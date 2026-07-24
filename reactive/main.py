@@ -70,7 +70,7 @@ def decision(project_a: dict, project_b: dict) -> dict:
         }
 
 # Rule 4
-    winner = "Project A" if project_a["penalty_amount"] > project_b["penalty_amount"] else "Project B"
+    winner = "Project A" if project_a["penalty_amount"] >= project_b["penalty_amount"] else "Project B"
     return {
         "recommended": winner,
         "rule_fired": "default_penalty_amount",
