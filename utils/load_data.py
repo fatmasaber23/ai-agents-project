@@ -1,10 +1,14 @@
 import json
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, "data", "projects.json")
 
 
 def load_projects():
 
     with open(
-        "data/projects.json",
+        DATA_PATH,
         "r",
         encoding="utf-8"
     ) as file:

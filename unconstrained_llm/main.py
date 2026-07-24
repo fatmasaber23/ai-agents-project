@@ -35,7 +35,9 @@ if not MISTRAL_API_KEY:
     )
 
 MODEL_NAME = "mistral-large-latest"
-DATA_PATH = "data/projects.json"
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, "data", "projects.json")
 
 
 # --------------------------------------------------------------------------

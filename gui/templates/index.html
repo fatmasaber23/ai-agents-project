@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConstructAI — Multi-Agent Equipment Allocation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+ 
+    <!-- ===== CHROME BAR ===== -->
+    <div class="chrome">
+        <div class="chrome-left">
+            <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
+            <span class="chrome-title" id="chromeTitle">ConstructAI</span>
+        </div>
+        <div class="chrome-dots">
+            <button class="dot-btn" onclick="resetApp()" title="Reset">✕</button>
+        </div>
+    </div>
+ 
+    <!-- ===== PAGE 1: LANDING ===== -->
+    <section class="screen active" id="screen-landing">
+        <div class="hero">
+            <div class="hero-grid">
+                <div>
+                    <span class="eyebrow">🏗 AI Agents for Construction</span>
+                    <h1>Construct<span class="accent">AI</span></h1>
+                    <h1 style="font-size:20px;font-weight:600;color:var(--text-muted);margin-top:2px;">Equipment Allocation Decision System</h1>
+                    <p>Compare how four different agent architectures (Reactive, Routing, Constrained ReAct, Unconstrained LLM) decide which project gets the shared crane.</p>
+                    <button class="btn btn-primary" onclick="goTo('screen-data')">Start Analysis →</button>
+                </div>
+                <div class="hero-art" id="heroArt">
+                    <img class="hero-img" src="{{ url_for('static', filename='hero-workers.jpg') }}" alt="Construction workers carrying a beam">
+                    <div class="tint"></div>
+                    <div class="crane-badge" id="craneBadge">🏗 Live jobsite</div>
+                </div>
+            </div>
+ 
+            <div class="feature-grid">
+                <div class="feature"><div class="ic" style="background:var(--blue-bg);color:var(--indigo);">🧠</div><h3>4 Agent Architectures</h3><p>Reactive · Routing · Constrained · Unconstrained</p></div>
+                <div class="feature"><div class="ic" style="background:var(--amber-bg);color:var(--amber);">📊</div><h3>Data‑Driven</h3><p>Decisions based on delay, penalties &amp; alternatives</p></div>
+                <div class="feature"><div class="ic" style="background:var(--green-bg);color:var(--green);">🔍</div><h3>Full Trace</h3><p>Every agent shows its complete reasoning chain</p></div>
+                <div class="feature"><div class="ic" style="background:var(--red-bg);color:var(--red);">⚖️</div><h3>Fair Comparison</h3><p>Same input, four different decision paths</p></div>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ===== PAGE 2: ENTER PROJECT DATA ===== -->
+    <section class="screen" id="screen-data">
+        <div class="panel">
+            <div class="agent-header">
+                <h2>Enter Project Data</h2>
+                <p class="agent-desc">Fill in the equipment-allocation details for both projects.</p>
+            </div>
+ 
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-card-title"><span class="ic-sq">🅰️</span> Project A</div>
+ 
+                    <label class="field-label">Delay if equipment is NOT assigned (days)</label>
+                    <input type="number" step="0.5" min="0" class="field-input" id="A-delay" value="15">
+ 
+                    <label class="field-label">Delay penalty clause in contract?</label>
+                    <div class="toggle-pair" data-target="A-hasPenalty">
+                        <button type="button" class="toggle-btn active" data-value="true">Yes</button>
+                        <button type="button" class="toggle-btn" data-value="false">No</button>
+                    </div>
+ 
+                    <label class="field-label">Penalty amount (EGP)</label>
+                    <input type="number" step="500" min="0" class="field-input" id="A-penaltyAmount" value="25000">
+ 
+                    <label class="field-label">Rental alternative available nearby?</label>
+                    <div class="toggle-pair" data-target="A-hasAlt">
+                        <button type="button" class="toggle-btn active" data-value="true">Yes</button>
+                        <button type="button" class="toggle-btn" data-value="false">No</button>
+                    </div>
+ 
+                    <label class="field-label">Rental cost per day (EGP)</label>
+                    <input type="number" step="500" min="0" class="field-input" id="A-rentalCost" value="10000">
+                </div>
+ 
+                <div class="data-card">
+                    <div class="data-card-title"><span class="ic-sq">🅱️</span> Project B</div>
+ 
+                    <label class="field-label">Delay if equipment is NOT assigned (days)</label>
+                    <input type="number" step="0.5" min="0" class="field-input" id="B-delay" value="14">
+ 
+                    <label class="field-label">Delay penalty clause in contract?</label>
+                    <div class="toggle-pair" data-target="B-hasPenalty">
+                        <button type="button" class="toggle-btn active" data-value="true">Yes</button>
+                        <button type="button" class="toggle-btn" data-value="false">No</button>
+                    </div>
+ 
+                    <label class="field-label">Penalty amount (EGP)</label>
+                    <input type="number" step="500" min="0" class="field-input" id="B-penaltyAmount" value="26000">
+ 
+                    <label class="field-label">Rental alternative available nearby?</label>
+                    <div class="toggle-pair" data-target="B-hasAlt">
+                        <button type="button" class="toggle-btn active" data-value="true">Yes</button>
+                        <button type="button" class="toggle-btn" data-value="false">No</button>
+                    </div>
+ 
+                    <label class="field-label">Rental cost per day (EGP)</label>
+                    <input type="number" step="500" min="0" class="field-input" id="B-rentalCost" value="9500">
+                </div>
+            </div>
+ 
+            <div class="notice-box">
+                <span class="notice-ic">⚠️</span>
+                <div>
+                    <div class="notice-title">Equipment Conflict</div>
+                    <div class="notice-sub">Both projects require the same equipment at the same time.</div>
+                </div>
+            </div>
+ 
+            <div class="nav-buttons">
+                <button class="btn btn-ghost" onclick="goTo('screen-landing')">🏠 Home</button>
+                <span></span>
+                <button class="btn btn-primary" onclick="goToMode()">Next →</button>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ===== PAGE 3: SELECT EXECUTION MODE ===== -->
+    <section class="screen" id="screen-mode">
+        <div class="panel">
+            <div class="agent-header">
+                <h2>Select Execution Mode</h2>
+                <p class="agent-desc">Choose how you'd like ConstructAI to evaluate this equipment request.</p>
+            </div>
+ 
+            <div class="mode-grid">
+                <button type="button" class="mode-card active" id="mode-single" onclick="selectMode('single')">
+                    <span class="mode-radio"></span>
+                    <div>
+                        <div class="mode-title">Run Single Agent</div>
+                        <div class="mode-sub">Run analysis using a single selected agent.</div>
+                    </div>
+                </button>
+                <button type="button" class="mode-card" id="mode-compare" onclick="selectMode('compare')">
+                    <span class="mode-radio"></span>
+                    <div>
+                        <div class="mode-title">Compare All Agents</div>
+                        <div class="mode-sub">Compare results from all four agent architectures.</div>
+                    </div>
+                </button>
+            </div>
+ 
+            <div id="agentPicker" class="agent-picker">
+                <label class="field-label">Choose Agent</label>
+                <select id="agentSelect" class="field-input" onchange="updateAgentDesc()">
+                    <option value="reactive">Reactive Agent</option>
+                    <option value="routing" selected>Routing Agent</option>
+                    <option value="constrained">Constrained ReAct Agent</option>
+                    <option value="unconstrained">Unconstrained LLM Agent</option>
+                </select>
+                <div class="agent-desc-box" id="agentDescBox"></div>
+            </div>
+ 
+            <div class="nav-buttons">
+                <button class="btn btn-ghost" onclick="goTo('screen-data')">⬅️ Previous</button>
+                <span></span>
+                <button class="btn btn-primary" id="runAnalysisBtn" onclick="runAnalysis()">Run Analysis →</button>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ===== PAGE 4a: SINGLE AGENT RESULT ===== -->
+    <section class="screen" id="screen-single">
+        <div class="panel result-panel">
+            <div class="agent-header">
+                <h2>Single Agent Result</h2>
+                <p class="agent-desc">Detailed decision trace and recommendation.</p>
+            </div>
+ 
+            <div class="result-grid">
+                <div class="result-card">
+                    <div class="mini-label">Selected Agent</div>
+                    <div class="agent-pill" id="single-agentName">—</div>
+ 
+                    <div class="mini-label" style="margin-top:20px;">Status</div>
+                    <div id="single-status">—</div>
+ 
+                    <div class="mini-label" style="margin-top:20px;">WHY THIS OUTCOME?</div>
+                    <ul class="why-list" id="single-why"></ul>
+ 
+                    <button class="run-btn" style="margin-top:20px;" onclick="goTo('screen-mode')">↻ Run Again</button>
+                </div>
+ 
+                <div class="result-card">
+                    <div class="mini-label">Recommended Action</div>
+                    <div class="recommend-line" id="single-recommend">—</div>
+ 
+                    <div class="mini-label" style="margin-top:20px;">Why This Decision?</div>
+                    <button type="button" class="view-trace-btn" id="toggleExplainBtn" onclick="toggleExplain()">🧠 Explain this decision</button>
+                    <div class="md-content explain-box" id="single-explain" hidden></div>
+ 
+                    <div class="mini-label" style="margin-top:20px;">Full Agent Output</div>
+                    <button type="button" class="view-trace-btn" id="toggleRawBtn" onclick="toggleRawTrace()">🖥 View raw trace</button>
+                    <pre class="raw-trace" id="single-raw" hidden></pre>
+                </div>
+            </div>
+ 
+            <div class="nav-buttons">
+                <button class="btn btn-ghost" onclick="goTo('screen-landing')">🏠 Home</button>
+                <button class="btn btn-ghost" onclick="goTo('screen-mode')">⬅️ Previous</button>
+                <span></span>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ===== PAGE 4b: RUNNING ANALYSIS (COMPARE ALL) ===== -->
+    <section class="screen" id="screen-running">
+        <div class="panel">
+            <div class="agent-header">
+                <h2>Running Analysis (Compare All)</h2>
+                <p class="agent-desc">Executing all four agent architectures on the same project data.</p>
+            </div>
+ 
+            <div class="progress-list" id="progressList"></div>
+ 
+            <div class="progress-footer">
+                <span>⏱ Estimated Time Remaining <b id="etaLabel">—</b></span>
+                <span>Overall Progress <b id="overallLabel">0%</b></span>
+            </div>
+            <div class="hint-line">💡 The Constrained ReAct agent may escalate cases with balanced evidence.</div>
+        </div>
+    </section>
+ 
+    <!-- ===== PAGE 5: COMPARISON REPORT ===== -->
+    <section class="screen" id="screen-comparison">
+        <div class="panel">
+            <div class="agent-header">
+                <h2>Comparison Report</h2>
+                <p class="agent-desc">How each agent architecture evaluated the same request.</p>
+            </div>
+ 
+            <div class="comparison-layout">
+                <div class="agent-results" id="agentResults"></div>
+ 
+                <div class="consensus-card">
+                    <div class="mini-label">Consensus</div>
+                    <div class="consensus-score" id="consensusScore">—</div>
+                    <div class="consensus-sub" id="consensusSub">Agents recommend</div>
+                </div>
+            </div>
+ 
+            <div class="key-insights">
+                <div class="mini-label">Key Insights</div>
+                <ul id="keyInsights"></ul>
+            </div>
+ 
+            <button type="button" class="view-trace-btn" id="toggleTracesBtn" onclick="toggleAllTraces()">🖥 View full agent traces</button>
+ 
+            <div class="trace-tabs-wrap" id="traceTabsWrap" style="display:none;">
+                <div class="mini-label">Agent Traces (full trace per agent)</div>
+                <div class="trace-tabs" id="traceTabs"></div>
+                <pre class="raw-trace" id="traceContent"></pre>
+            </div>
+ 
+            <div class="nav-buttons">
+                <button class="btn btn-ghost" onclick="goTo('screen-landing')">🚪 Exit</button>
+                <button class="btn btn-ghost" onclick="goTo('screen-data')">🔁 New Comparison</button>
+                <span></span>
+            </div>
+        </div>
+    </section>
+ 
+</div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
