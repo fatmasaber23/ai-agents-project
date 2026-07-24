@@ -1,4 +1,3 @@
-
 """
 GUI Backend
 -----------
@@ -119,6 +118,83 @@ def json_safe(value):
         return value
     except TypeError:
         return str(value)
+
+
+RULE = "=" * 60
+
+
+def build_raw_log_reactive(result):
+    """Mirrors the exact text `python -m reactive.main` prints."""
+    return "\n".join([
+        RULE,
+        "     REACTIVE AGENT RESULT",
+        RULE,
+        f"Rule fired  : {result.get('rule_fired','')}",
+        f"Recommended : {result.get('recommended','')}",
+        f"Reason      : {result.get('reason','')}",
+        RULE,
+    ])
+
+
+def build_raw_log_routing(result):
+    """Mirrors the exact text `python -m routing.main` prints."""
+    lines = [
+        RULE,
+        "         ROUTING AGENT RESULT",
+        RULE,
+        "",
+        f"Selected Review       : {result.get('category','')}",
+        f"Equipment Assigned To : {result.get('recommended','')}",
+        "",
+        "Reasons:",
+    ]
+    for r in result.get("reasons", []):
+        lines.append(f" • {r}")
+    if result.get("other_project"):
+        lines.append("")
+        lines.append(f"Suggested Action for {result['other_project']}:")
+        lines.append(f" → {result.get('other_project_action','')}")
+    lines.append("")
+    lines.append(RULE)
+    return "\n".join(lines)
+
+
+def build_raw_log_constrained(result):
+    """Mirrors the exact text `python -m constrained_react.main` prints —
+    same header/footer, same 'Step N: <thought> / Called / Observation'
+    shape shown in the terminal, built from the structured result dict so
+    the GUI never has to fall back to a raw JSON dump."""
+    trace = result.get("trace", [])
+    status = result.get("status", "")
+    lines = [
+        RULE,
+        "     CONSTRAINED REACT AGENT RESULT",
+        RULE,
+        f"Status       : {status}",
+        f"Steps Used   : {len(trace)}",
+    ]
+    if status == "escalated":
+        esc_text = next((e.get("escalate", "") for e in trace if "escalate" in e), "")
+        lines.append(f"Escalation Reason: {esc_text}")
+    else:
+        lines.append(f"Recommended  : {result.get('recommended_project','')}")
+    lines.append("")
+    lines.append("--- Full Trace ---")
+    for e in trace:
+        step = e.get("step", "")
+        thought = e.get("thought", "")
+        lines.append("")
+        lines.append(f"Step {step}: {thought}")
+        if "action" in e:
+            lines.append(f"  → Called: {e['action']}")
+            lines.append(f"  → Observation: {e.get('observation')}")
+        elif "final_answer" in e:
+            lines.append(f"  → Final Answer: {e.get('final_answer')}")
+        elif "escalate" in e:
+            lines.append(f"  → Escalated: {e.get('escalate')}")
+    lines.append("")
+    lines.append(RULE)
+    return "\n".join(lines)
  
  
 def get_submitted_projects():
@@ -180,8 +256,13 @@ def index():
 def api_run_reactive():
     try:
         projects = get_submitted_projects()
-        result = reactive_decision(projects["projectA"], projects["projectB"])
- 
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            result = reactive_decision(projects["projectA"], projects["projectB"])
+        # Prefer whatever the agent itself printed (identical to the terminal
+        # run); fall back to a formatted equivalent if it printed nothing.
+        raw_log = buffer.getvalue().strip() or build_raw_log_reactive(result)
+
         return jsonify({
             "agent": "reactive",
             "recommended": result["recommended"],
@@ -190,6 +271,7 @@ def api_run_reactive():
                 "label": result["rule_fired"],
                 "detail": result["reason"],
             }],
+            "raw_log": raw_log,
         })
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
@@ -199,9 +281,12 @@ def api_run_reactive():
 def api_run_routing():
     try:
         projects = get_submitted_projects()
+        buffer = io.StringIO()
         with patched_project_data(projects):
-            result = run_routing_agent()
- 
+            with contextlib.redirect_stdout(buffer):
+                result = run_routing_agent()
+        raw_log = buffer.getvalue().strip() or build_raw_log_routing(result)
+
         return jsonify({
             "agent": "routing",
             "recommended": result["recommended"],
@@ -212,6 +297,7 @@ def api_run_routing():
             }],
             "other_project": result["other_project"],
             "other_project_action": result["other_project_action"],
+            "raw_log": raw_log,
         })
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
@@ -221,37 +307,49 @@ def api_run_routing():
 def api_run_constrained():
     try:
         projects = get_submitted_projects()
+        buffer = io.StringIO()
         with patched_project_data(projects):
-            result = run_constrained_react_agent()
- 
+            with contextlib.redirect_stdout(buffer):
+                result = run_constrained_react_agent()
+
         trace = []
         for entry in result["trace"]:
+            # Keep the "thought" narration on every entry (not just
+            # final_answer) so the GUI can show the same step-by-step
+            # reasoning the terminal run prints, instead of silently
+            # dropping it.
+            thought = entry.get("thought", "")
             if "action" in entry:
                 trace.append({
                     "step": entry["step"],
                     "label": entry["action"],
+                    "thought": thought,
                     "detail": json_safe(entry["observation"]),
                 })
             elif "final_answer" in entry:
                 trace.append({
                     "step": entry["step"],
                     "label": "final_answer",
+                    "thought": thought,
                     "detail": entry["thought"],
                 })
             elif "escalate" in entry:
                 trace.append({
                     "step": entry["step"],
                     "label": "escalate",
+                    "thought": thought,
                     "detail": entry["escalate"],
                 })
- 
+
         recommended = result.get("recommended_project") or "Escalated"
- 
+        raw_log = buffer.getvalue().strip() or build_raw_log_constrained(result)
+
         return jsonify({
             "agent": "constrained",
             "recommended": recommended,
             "status": result["status"],
             "trace": trace,
+            "raw_log": raw_log,
         })
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500

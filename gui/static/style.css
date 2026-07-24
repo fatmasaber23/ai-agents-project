@@ -111,7 +111,15 @@ button { font-family: inherit; }
 }
 .btn-primary { background: var(--grad); color: #fff; box-shadow: 0 8px 20px -6px rgba(74,144,217,0.5); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -6px rgba(74,144,217,0.6); }
+.btn-ghost {
+    background: var(--surface-alt);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--crane); background: var(--surface); color: var(--crane); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+.nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 500px) { .nav-buttons { flex-direction: column; align-items: stretch; } }
  
 /* Image placeholder */
 .hero-art {
@@ -532,21 +540,66 @@ button { font-family: inherit; }
     font-size: 0.9em;
 }
  
-.raw-trace {
-    background: #0d0f12;
+/* ----- Raw trace: styled like a real terminal window ----- */
+.trace-wrap {
+    margin-top: 8px;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
+    overflow: hidden;
+    background: #0d0f12;
+}
+.trace-wrap-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: #1a1d23;
+    border-bottom: 1px solid var(--border);
+}
+.trace-wrap-dots { display: flex; gap: 6px; flex-shrink: 0; }
+.trace-wrap-dots i {
+    width: 10px; height: 10px; border-radius: 50%; display: block;
+    background: #4a4e58;
+}
+.trace-wrap-dots i:nth-child(1) { background: #e8590c; }
+.trace-wrap-dots i:nth-child(2) { background: #f2a93b; }
+.trace-wrap-dots i:nth-child(3) { background: #6fbf73; }
+.trace-wrap-title {
+    flex: 1; font-size: 11.5px; font-weight: 700; color: var(--text-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.trace-copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 7px;
+    cursor: pointer; transition: .2s; flex-shrink: 0;
+}
+.trace-copy-btn:hover { border-color: var(--crane); color: var(--crane); }
+.trace-copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+.raw-trace {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 16px 18px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12.5px;
-    line-height: 1.7;
-    color: var(--text-muted);
+    line-height: 1.75;
+    color: #c7cbd4;
     white-space: pre-wrap;
     word-break: break-word;
-    max-height: 280px;
+    max-height: 340px;
     overflow-y: auto;
-    margin-top: 8px;
+    margin-top: 0;
 }
+/* Lightly tokenized log output (see formatTrace() in script.js) */
+.tk-rule  { color: #454a55; }
+.tk-head  { color: var(--crane); font-weight: 700; }
+.tk-final { color: var(--green); font-weight: 700; }
+.tk-step  { color: var(--info); font-weight: 700; }
+.tk-arrow { color: #A78BFA; font-weight: 600; }
+.tk-obs   { color: var(--ok); font-weight: 600; }
+.tk-bullet{ color: var(--crane); }
  
 /* ---------- Running Analysis ---------- */
 .progress-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }

@@ -201,7 +201,14 @@
  
                     <div class="mini-label" style="margin-top:20px;">Full Agent Output</div>
                     <button type="button" class="view-trace-btn" id="toggleRawBtn" onclick="toggleRawTrace()">🖥 View raw trace</button>
-                    <pre class="raw-trace" id="single-raw" hidden></pre>
+                    <div class="trace-wrap" id="single-raw-wrap" hidden>
+                        <div class="trace-wrap-bar">
+                            <span class="trace-wrap-dots"><i></i><i></i><i></i></span>
+                            <span class="trace-wrap-title" id="single-raw-title">agent_output.log</span>
+                            <button type="button" class="trace-copy-btn" onclick="copyTraceText('single-raw', this)">Copy</button>
+                        </div>
+                        <pre class="raw-trace" id="single-raw"></pre>
+                    </div>
                 </div>
             </div>
  
@@ -259,7 +266,14 @@
             <div class="trace-tabs-wrap" id="traceTabsWrap" style="display:none;">
                 <div class="mini-label">Agent Traces (full trace per agent)</div>
                 <div class="trace-tabs" id="traceTabs"></div>
-                <pre class="raw-trace" id="traceContent"></pre>
+                <div class="trace-wrap">
+                    <div class="trace-wrap-bar">
+                        <span class="trace-wrap-dots"><i></i><i></i><i></i></span>
+                        <span class="trace-wrap-title" id="traceContentTitle">agent_output.log</span>
+                        <button type="button" class="trace-copy-btn" onclick="copyTraceText('traceContent', this)">Copy</button>
+                    </div>
+                    <pre class="raw-trace" id="traceContent"></pre>
+                </div>
             </div>
  
             <div class="nav-buttons">

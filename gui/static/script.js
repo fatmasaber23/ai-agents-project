@@ -109,6 +109,54 @@ function humanizeDetail(detail) {
     }
     return detail ? String(detail) : '';
 }
+
+// Compact, single-line version of humanizeDetail for use inside a <li> —
+// e.g. "Greater Delay Impact: Project A, Project A Delay Days: 15" instead
+// of a raw JSON blob.
+function summarizeDetail(detail) {
+    if (detail && typeof detail === 'object') {
+        return Object.entries(detail)
+            .map(([k, v]) => `${humanizeKey(k)}: ${v}`)
+            .join(', ');
+    }
+    return detail ? String(detail) : '';
+}
+
+// Lightly tokenizes the raw agent log (the exact text the terminal run
+// prints) so it reads like syntax-highlighted output instead of a flat
+// wall of monospace text. Purely cosmetic — never changes the text itself.
+function formatTrace(text) {
+    const esc = (text || '(no raw output returned)')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.split('\n').map(line => {
+        if (/^=+$/.test(line.trim())) return `<span class="tk-rule">${line}</span>`;
+        if (/^\s*(REACTIVE|ROUTING|CONSTRAINED REACT|UNCONSTRAINED LLM).*RESULT\s*$/.test(line)) return `<span class="tk-head">${line}</span>`;
+        if (/^\s*=== FINAL ANSWER ===/.test(line)) return `<span class="tk-final">${line}</span>`;
+        if (/^\s*Step \d+/.test(line)) return line.replace(/^(\s*Step \d+[:.]?)/, '<span class="tk-step">$1</span>');
+        if (/→\s*(Called|Observation|Escalated|Final Answer)/.test(line)) return line.replace(/(→\s*(Called|Observation|Escalated|Final Answer))/, '<span class="tk-arrow">$1</span>');
+        if (/^\s*Observation/.test(line)) return line.replace(/^(\s*Observation[:.]?)/, '<span class="tk-obs">$1</span>');
+        if (/^\s*[•·]/.test(line)) return line.replace(/^(\s*[•·])/, '<span class="tk-bullet">$1</span>');
+        if (/^\s*(Status|Steps Used|Recommended|Rule fired|Reason|Selected Review|Equipment Assigned To|Escalation Reason)\s*:/.test(line)) return line.replace(/^(\s*[A-Za-z ]+:)/, '<span class="tk-head">$1</span>');
+        return line;
+    }).join('\n');
+}
+
+// Copy-to-clipboard for the terminal-style trace boxes.
+async function copyTraceText(bodyId, btn) {
+    const body = document.getElementById(bodyId);
+    const text = body.innerText;
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    const original = btn.textContent;
+    btn.classList.add('copied');
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = original; }, 1500);
+}
  
 // Builds a readable "why did the agent decide this" explanation for any
 // agent, in the same prose/markdown style the unconstrained agent already
@@ -293,8 +341,9 @@ function renderSingleResult(agentKey, data) {
         data.trace.forEach(step => {
             const li = document.createElement('li');
             const label = step.label || step.action || '';
-            const detail = typeof step.detail === 'object' ? JSON.stringify(step.detail) : (step.detail || '');
-            li.textContent = `${label}${detail ? ': ' + detail : ''}`;
+            const detail = summarizeDetail(step.detail);
+            const thought = step.thought ? step.thought + ' ' : '';
+            li.innerHTML = `${thought}<br><span style="color:var(--text-muted);font-size:12.5px;">${label}${detail ? ': ' + detail : ''}</span>`;
             whyEl.appendChild(li);
         });
     }
@@ -309,16 +358,13 @@ function renderSingleResult(agentKey, data) {
         whyEl.appendChild(li);
     }
  
-    // Raw trace
-    const rawEl = document.getElementById('single-raw');
-    if (agentKey === 'unconstrained') {
-        rawEl.textContent = data.raw_log || '(no raw log)';
-    } else {
-        rawEl.textContent = JSON.stringify(data, null, 2);
-    }
- 
+    // Raw trace — the exact terminal-style log the backend captured (or
+    // rebuilt) for this agent, lightly tokenized so it reads like a real log.
+    document.getElementById('single-raw-title').textContent = `${agentKey}_agent_output.log`;
+    document.getElementById('single-raw').innerHTML = formatTrace(data.raw_log);
+
     // Collapse the raw trace again on every fresh run
-    rawEl.hidden = true;
+    document.getElementById('single-raw-wrap').hidden = true;
     document.getElementById('toggleRawBtn').textContent = '🖥 View raw trace';
 }
  
@@ -330,10 +376,10 @@ function toggleExplain() {
 }
  
 function toggleRawTrace() {
-    const rawEl = document.getElementById('single-raw');
+    const wrap = document.getElementById('single-raw-wrap');
     const btn = document.getElementById('toggleRawBtn');
-    rawEl.hidden = !rawEl.hidden;
-    btn.textContent = rawEl.hidden ? '🖥 View raw trace' : '🔼 Hide raw trace';
+    wrap.hidden = !wrap.hidden;
+    btn.textContent = wrap.hidden ? '🖥 View raw trace' : '🔼 Hide raw trace';
 }
  
 // ---------- Compare all flow ----------
@@ -480,7 +526,8 @@ function populateTraceContent(agentKey) {
     const tabBtn = document.getElementById(`trace-tab-${agentKey}`);
     if (tabBtn) tabBtn.classList.add('active');
     const data = lastCompareResults[agentKey] || {};
-    document.getElementById('traceContent').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('traceContentTitle').textContent = `${agentKey}_agent_output.log`;
+    document.getElementById('traceContent').innerHTML = formatTrace(data.raw_log || data.error);
 }
  
 function openTraces() {
