@@ -417,7 +417,16 @@ button { font-family: inherit; }
     background: var(--green-bg);
     color: var(--green);
 }
+.toggle-btn.active[data-value="false"] {
+    background: var(--red-bg);
+    color: var(--red);
+}
 .toggle-btn:not(.active):hover { background: var(--surface-alt); }
+
+/* Penalty amount / rental cost fields — only shown when the matching
+   Yes/No toggle above them is set to "Yes". */
+.conditional-field { overflow: hidden; transition: max-height .2s ease; }
+.conditional-field.hidden-field { display: none; }
  
 .notice-box {
     display: flex; gap: 12px; align-items: flex-start;

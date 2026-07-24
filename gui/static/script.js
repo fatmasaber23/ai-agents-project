@@ -207,16 +207,36 @@ function getBool(id) {
  
 function collectProjectData() {
     ['A', 'B'].forEach(p => {
+        const hasPenalty = getBool(`${p}-hasPenalty`);
+        const hasAlt = getBool(`${p}-hasAlt`);
         projectData[p] = {
             delay: parseFloat(document.getElementById(`${p}-delay`).value) || 0,
-            hasPenalty: getBool(`${p}-hasPenalty`),
-            penaltyAmount: parseFloat(document.getElementById(`${p}-penaltyAmount`).value) || 0,
-            hasAlt: getBool(`${p}-hasAlt`),
-            rentalCost: parseFloat(document.getElementById(`${p}-rentalCost`).value) || 0
+            hasPenalty,
+            penaltyAmount: hasPenalty ? (parseFloat(document.getElementById(`${p}-penaltyAmount`).value) || 0) : 0,
+            hasAlt,
+            rentalCost: hasAlt ? (parseFloat(document.getElementById(`${p}-rentalCost`).value) || 0) : 0
         };
     });
 }
- 
+
+// Shows/hides the field tied to a Yes/No toggle (e.g. hides "Penalty
+// amount" as soon as "No" is picked for "Delay penalty clause?").
+const TOGGLE_FIELD_MAP = {
+    'hasPenalty': 'penaltyAmount',
+    'hasAlt': 'rentalCost'
+};
+function syncConditionalField(targetId) {
+    const suffix = targetId.split('-')[1]; // hasPenalty | hasAlt
+    const fieldKey = TOGGLE_FIELD_MAP[suffix];
+    if (!fieldKey) return;
+    const wrap = document.getElementById(`${targetId.split('-')[0]}-${fieldKey}-wrap`);
+    if (!wrap) return;
+    wrap.classList.toggle('hidden-field', !getBool(targetId));
+}
+function syncAllConditionalFields() {
+    ['A-hasPenalty', 'B-hasPenalty', 'A-hasAlt', 'B-hasAlt'].forEach(syncConditionalField);
+}
+
 // Toggle buttons (Yes/No pairs)
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.toggle-btn');
@@ -224,7 +244,10 @@ document.addEventListener('click', function (e) {
     const wrap = btn.closest('.toggle-pair');
     wrap.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    syncConditionalField(wrap.dataset.target);
 });
+
+document.addEventListener('DOMContentLoaded', syncAllConditionalFields);
  
 // ============================================================
 // Navigation: Data -> Mode
